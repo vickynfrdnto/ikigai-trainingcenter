@@ -1,0 +1,47 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "authz": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "orgUnits": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "departments": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "jobRoles": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "accessRoles": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "users": {
+      ".read": "auth != null && auth.token.isAdmin === true",
+      "$code": {
+        ".read": "auth != null && (auth.token.isAdmin === true || (auth.token.userCode === $code && data.child('authUid').val() === auth.uid))",
+        ".write": "auth != null && (auth.token.isAdmin === true || (auth.token.userCode === $code && data.child('authUid').val() === auth.uid && newData.child('authUid').val() === auth.uid && newData.child('nama').val() === data.child('nama').val() && newData.child('kode').val() === data.child('kode').val() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && newData.child('divisi').val() === data.child('divisi').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('accessRoleIds').val() === data.child('accessRoleIds').val() && newData.child('organizationAssignments').val() === data.child('organizationAssignments').val() && newData.child('unitId').val() === data.child('unitId').val() && newData.child('departmentId').val() === data.child('departmentId').val() && newData.child('jobRoleId').val() === data.child('jobRoleId').val()))"
+      }
+    },
+    "trainingModules": {
+      ".read": "auth != null && auth.token.isAdmin === true",
+      ".write": "auth != null && auth.token.isAdmin === true"
+    },
+    "questionBank": {
+      ".read": "auth != null && auth.token.isAdmin === true",
+      ".write": "auth != null && auth.token.isAdmin === true"
+    },
+    "security": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

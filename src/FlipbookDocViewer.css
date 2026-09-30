@@ -1,0 +1,402 @@
+/* FlipbookDocViewer.css — react-pageflip edition
+   Animasi flip diambil dari library react-pageflip (drag/turn look asli
+   versi pertama). Palet warna & header/tools tetap mengikuti skema
+   teal/emerald yang sudah dipakai di app ini. */
+
+.fb-reader {
+  --fb-green: #075b4b;
+  --fb-green-deep: #03352d;
+  --fb-mint: #34d399;
+  --fb-paper: #ffffff;
+
+  width: 100%;
+  min-height: 420px;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #061713;
+  color: #ffffff;
+  box-shadow: 0 22px 48px rgba(3, 15, 12, 0.22);
+}
+
+.fb-reader:fullscreen,
+.fb-reader.fb-reader-fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* ── Header ── */
+.fb-reader-header {
+  height: 56px;
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 18px;
+  background: linear-gradient(90deg, var(--fb-green-deep), var(--fb-green));
+  z-index: 10;
+}
+
+.fb-reader-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.fb-reader-title > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fb-reader-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+  background: var(--fb-mint);
+  box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.14);
+}
+
+.fb-reader-page {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Floating tool buttons ── */
+.fb-reader-tools {
+  position: absolute;
+  top: 64px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+}
+
+.fb-reader-tool {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  color: #08231e;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.fb-reader-tool:hover { color: #ffffff; background: var(--fb-green); }
+.fb-reader-tool.is-active { color: #ffffff; background: var(--fb-green); }
+
+/* ── Stage ──
+   Padding kiri/kanan memberi jatah untuk tombol panah, dan karena
+   ResizeObserver membaca contentRect (yaitu ukuran SETELAH padding),
+   perhitungan lebar buku di JS otomatis sudah benar tanpa perlu
+   mengurangi lebar tombol secara manual — jadi buku tidak lagi meluber
+   atau kepotong seperti sebelumnya. */
+.fb-reader-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 10px 46px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 10%, transparent 90%, rgba(0, 0, 0, 0.18)),
+    #eef3f1;
+}
+
+.fb-reader-stage.is-zoomed {
+  overflow: auto;
+  align-items: flex-start;
+}
+.fb-reader-stage.is-zoomed .fb-reader-book-frame { margin: auto; }
+
+.fb-reader-book-frame {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.fb-reader-ground-shadow {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -14px;
+  height: 26px;
+  z-index: 1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 72%);
+  pointer-events: none;
+}
+
+.fb-book {
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.18));
+  border-radius: 2px;
+}
+
+.fb-reader-page-sheet {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--fb-paper);
+  position: relative;
+  padding: 4%;
+  box-sizing: border-box;
+}
+
+.fb-reader-page-sheet img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--fb-paper);
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* ── Overlay nav arrows ── */
+.fb-reader-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(7, 91, 75, 0.28); /* lebih transparan */
+  box-shadow: 0 6px 14px rgba(3, 15, 12, 0.12);
+
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  z-index: 8;
+
+  /* jangan blur tulisan di belakang */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.fb-reader-nav.left {
+  left: 8px;
+}
+
+.fb-reader-nav.right {
+  right: 8px;
+}
+
+.fb-reader-nav:hover:not(:disabled) {
+  background: rgba(7, 91, 75, 0.55);
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.fb-reader-nav:disabled {
+  opacity: 0.12;
+  cursor: not-allowed;
+}
+
+.fb-reader-book-frame {
+  overflow: visible;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
+
+.fb-reader-page-sheet {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.fb-reader-page-sheet img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Kurangi efek celah/bayangan di spine tengah */
+.fb-book .stf__page {
+  margin: 0 !important;
+}
+
+.fb-book .stf__block {
+  gap: 0 !important;
+}
+
+/* ── Bottom progress ── */
+.fb-reader-progress-line {
+  height: 5px;
+  flex: 0 0 5px;
+  background: #061713;
+}
+
+.fb-reader-progress {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.fb-reader-progress-fill {
+  height: 100%;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #14b8a6, #34d399);
+  transition: width 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Loading / error state ── */
+.fb-reader-state {
+  min-height: 320px;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 18px;
+  background: #071c18;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.fb-reader-state svg { color: var(--fb-mint); }
+.fb-reader-state p,
+.fb-reader-state strong { margin: 0; }
+
+.fb-loading-bar {
+  width: min(260px, 60%);
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fb-loading-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #14b8a6, #34d399);
+  transition: width 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fb-reader-progress-fill,
+  .fb-loading-fill {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .fb-reader {
+    min-height: 340px;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+  }
+
+  .fb-reader-header {
+    height: 48px;
+    flex-basis: 48px;
+    padding: 0 13px;
+  }
+
+  .fb-reader-title { font-size: 14px; }
+
+  .fb-reader-page {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .fb-reader-tools {
+    top: 56px;
+    right: 8px;
+  }
+
+  .fb-reader-stage { padding: 8px 40px; }
+
+  .fb-reader-nav { width: 32px; height: 32px; }
+}
+
+.fb-reader-zoom-wrap {
+  position: relative;
+}
+
+.fb-reader-zoom-wrap .fb-reader-tool {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fb-reader-zoom-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+
+  display: none;
+  flex-direction: column;
+
+  min-width: 80px;
+  padding: 5px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(7, 91, 75, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+  z-index: 20;
+}
+
+.fb-reader-zoom-wrap:hover .fb-reader-zoom-menu {
+  display: flex;
+}
+
+.fb-reader-zoom-menu button {
+  border: 0;
+  background: transparent;
+  padding: 7px 10px;
+
+  text-align: center;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fb-reader-zoom-menu button:hover,
+.fb-reader-zoom-menu button.active {
+  background: var(--fb-mint);
+  color: #06110e;
+  font-weight: 600;
+}

@@ -1,0 +1,19 @@
+{
+  "users": {
+    "IKIGAI-ADMIN-2026": {
+      "nama": "Administrator IKIGAI",
+      "divisi": "Training Center",
+      "role": "ADMIN",
+      "kode": "IKIGAI-ADMIN-2026",
+      "progress": 0,
+      "completedVideos": [],
+      "passedQuizzes": [],
+      "bookmarks": [],
+      "lastActive": "Never",
+      "createdAt": "18/08/2026",
+      "status": "Active"
+    }
+  },
+  "trainingModules": {},
+  "questionBank": {}
+}
